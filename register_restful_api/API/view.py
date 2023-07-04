@@ -7,7 +7,8 @@ import smtplib
 from datetime import datetime, timedelta
 import jwt
 from register_restful_api.API.user_jwt_token import authentication_token
-from flask_jwt_extended import create_access_token,jwt_required
+from flask_jwt_extended import create_access_token, jwt_required, create_refresh_token, get_jwt_identity
+from register_restful_api import JWT_ACCESS_TOKEN_TIMEDELTA
 
 register_user_api = Blueprint('register_user_api', __name__)
 register_api = Api(register_user_api)
@@ -77,8 +78,13 @@ class Login_user(Resource):
 
             if user_data:
                 if user_data['password'] == user_login_password and user_data['is_verified'] == True:
-                    user_access_token=create_access_token(user_login_email)
-                    return jsonify({'Response': 'user login successfully','access_token':user_access_token})
+                    user_access_token = create_access_token(identity=user_login_email,
+                                                            expires_delta=JWT_ACCESS_TOKEN_TIMEDELTA)
+                    user_refresh_token = create_refresh_token(identity=user_login_email)
+                    return jsonify({'Response': 'user login successfully',
+                                    'access_token': user_access_token,
+                                    'refresh_token': user_refresh_token
+                                    })
                 else:
                     return jsonify({'Error': 'Data is not verified'})
             else:
@@ -87,16 +93,44 @@ class Login_user(Resource):
             return jsonify({'ERROR': 'user not found'})
 
 
-# class Update_user(Resource):
-#     def post(self):
-#         try:
-#             update_user_data=request.json.get('email')
-#             update_user_password=request.json.get('password')
-#         except:
-#             return jsonify({'ERROR': 'Data is invalid'})
+class Update_user(Resource):
+    @jwt_required()
+    def post(self):
+
+        try:
+            update_user_data = get_jwt_identity()
+            update_user_password = request.json.get('password')
+            current_user_details = find_user_data(update_user_data)
+            if current_user_details:
+                if current_user_details['role'] == 'Admin':
+                    upadte_user_details(update_user_data, update_user_password)
+                    return jsonify({'current_user': 'user data updated'})
+                else:
+                    return jsonify({'Error': 'Not authorized user for update'})
+            else:
+                return jsonify({'ERROR': 'user is not valid'})
+        except:
+            return jsonify({'ERROR': 'Data is invalid'})
+
+
+class Delete_user(Resource):
+    @jwt_required()
+    def post(self):
+        try:
+            delete_user = get_jwt_identity()
+            find_user_availability = find_user_data(delete_user)
+            if find_user_availability:
+                if find_user_availability['role'] == 'Admin':
+                    delete_user_data(delete_user)
+                    return jsonify({'Response': 'user is deleted'})
+                return jsonify({'Error': 'Not authorized user for delete'})
+            return jsonify({'ERROR': 'user is not register'})
+        except:
+            return jsonify({'ERROR': 'user is not valid'})
 
 
 register_api.add_resource(RegisterUser, '/register')
 register_api.add_resource(Verify_user, '/verify')
 register_api.add_resource(Login_user, '/login')
-# register_api.add_resource(Update_user, '/update')
+register_api.add_resource(Update_user, '/update')
+register_api.add_resource(Delete_user, '/delete')

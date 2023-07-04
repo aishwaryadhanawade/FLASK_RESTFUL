@@ -36,3 +36,20 @@ def update_verified_user(user_data):
         return {
             'ERROR': 'data is not valid'
         }
+
+def upadte_user_details(user_email,user_password):
+    try:
+        update_details=user_collection.update_one({'email':user_email},{'$set':{'password':user_password}})
+        return update_details
+    except:
+        return {'ERROR':'Unable to update'}
+
+
+def delete_user_data(user_email):
+    try:
+        delete_user=user_collection.delete_one({'email':user_email})
+        return delete_user
+    except:
+        return {
+            'ERROR':'unable to delete'
+        }

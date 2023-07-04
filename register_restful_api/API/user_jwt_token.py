@@ -4,7 +4,7 @@ import jwt
 
 def authentication_token(func):
     def wapper_data(*args):
-        bearer_token=request.headers.get('authorization')
+        bearer_token=request.headers.get('token')
         jwt_decoded_token=jwt.decode(bearer_token,'secret_key',algorithms='HS256')
         # token_data=jwt_decoded_token['data']['email']
         # print(token_data)
@@ -12,9 +12,5 @@ def authentication_token(func):
     return wapper_data
 
 
-# def authorization_token(func):
-#     def wapper_data(*args):
-#         token_user=request.headers.get('')
-#         return func(*args)
-#     return wapper_data
+
 
