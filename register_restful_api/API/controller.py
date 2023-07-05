@@ -8,13 +8,14 @@ def insert_user_data(user_data):
                 'email': user_data.get('email'),
                 'password': user_data.get('password'),
                 'role': user_data.get('role'),
-                'is_verified': user_data.get('is_verified')
+                'is_verified': user_data.get('is_verified'),
+                'is_deleted': False
             }
         )
         return register_user
     except:
         return {
-            'Error': 'Unable to Register'
+            'error': 'Unable to Register'
         }
 
 
@@ -24,7 +25,7 @@ def find_user_data(user_data):
         return get_user_data
     except:
         return {
-            'Error': 'Not found'
+            'error': 'Not found'
         }
 
 
@@ -34,22 +35,23 @@ def update_verified_user(user_data):
         return update_status
     except:
         return {
-            'ERROR': 'data is not valid'
+            'error': 'data is not valid'
         }
 
-def upadte_user_details(user_email,user_password):
+
+def update_user_details(user_email, user_password):
     try:
-        update_details=user_collection.update_one({'email':user_email},{'$set':{'password':user_password}})
+        update_details = user_collection.update_one({'email': user_email}, {'$set': {'password': user_password}})
         return update_details
     except:
-        return {'ERROR':'Unable to update'}
+        return {'error': 'Unable to update'}
 
 
 def delete_user_data(user_email):
     try:
-        delete_user=user_collection.delete_one({'email':user_email})
+        delete_user = user_collection.update_one({'email': user_email}, {'$set': {'is_deleted': True,'is_verified':False}})
         return delete_user
     except:
         return {
-            'ERROR':'unable to delete'
+            'error': 'unable to delete'
         }
