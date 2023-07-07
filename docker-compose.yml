@@ -1,0 +1,20 @@
+version: "3.7"
+
+services:
+  flask:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: flask-app-restful
+#    volumes:
+#      - ./:/app
+    command: python3 view.py --host=0.0.0.0
+
+
+  mongodb:
+     image: mongo
+     ports:
+      - 27017:27017
+
+#volumes:
+#  myapp:

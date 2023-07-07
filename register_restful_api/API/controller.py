@@ -12,7 +12,8 @@ def insert_user_data(user_data):
                 'is_deleted': False
             }
         )
-        return register_user
+        result = True if register_user.acknowledged else False
+        return result
     except:
         return {
             'error': 'Unable to Register'
@@ -21,13 +22,20 @@ def insert_user_data(user_data):
 
 def find_user_data(user_data):
     try:
-        get_user_data = user_collection.find_one({'email': user_data}, {'_id': 0, 'update_time': 0})
-        return get_user_data
-    except:
+        get_user_data = user_collection.find_one({'email': user_data})
+        if get_user_data:
+            return True
+        else:
+            return False
+    except Exception as e:
+        import traceback
+        print(traceback.print_exc())
         return {
             'error': 'Not found'
         }
 
+# obj = {"email":"pamit1687@gmail.com"}
+# print(find_user_data(obj))s
 
 def update_verified_user(user_data):
     try:

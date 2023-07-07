@@ -19,12 +19,17 @@ register_user_api = Blueprint('register_user_api', __name__)
 register_api = Api(register_user_api)
 
 
+class Default(Resource):
+    def get(self):
+        return "Hello"
+
 class RegisterUser(Resource):
     def post(self):
         try:
-            user_details = request.get_json()
-            email = user_details.get('email')
-            password = user_details.get('password')
+            # user_details = request.get_json()
+            email = request.json.get('email')
+            password = request.json.get('password')
+            print(email,password)
             role = 'Admin'
             is_verified = False
             token_expiry_time = datetime.now() + timedelta(minutes=15)
@@ -34,8 +39,10 @@ class RegisterUser(Resource):
             print(encrypt_password)
 
             existing_email = find_user_data(email)
+            print(existing_email)
             if existing_email:
                 return jsonify({'response': 'Email is already Register'})
+
             try:
                 encoded_data = {
                     'data': {'email': email, 'role': role, 'is_verified': is_verified},
@@ -46,12 +53,16 @@ class RegisterUser(Resource):
                 msg_token = f'''<html>
                                     <body>
                                         <p>To verify your email</p>
-                                        <b><a href="http://127.0.0.1:5000//v1/api/verify?token={user_auth_token}">Click Here</a></b> 
+                                        <b><a href="http://127.0.0.1:5000//v1/api/verify?token={user_auth_token}">Click Here</a></b>
                                     </body>
                                 </html>'''
 
                 sender_mail = os.environ.get('sender_gmail')
                 sender_password = os.environ.get('app_password')
+                # sender_mail = "aishwaryadhanawade612@gmail.com"
+                #
+                # sender_password = "igxnzbkbjtnctwio"
+
                 message = MIMEMultipart("alternative")
                 message['Subject'] = "Verification Email"
                 message['From'] = sender_mail
@@ -66,14 +77,16 @@ class RegisterUser(Resource):
                 smtpobj.sendmail(sender_mail, email, message.as_string())
 
                 register_user_data = {'email': email,
-                                      'password': encrypt_password,
+                                      'password': password,
                                       'role': role,
                                       'is_verified': is_verified}
                 insert_user_data(register_user_data)
                 return jsonify({'response': 'mail send'})
 
-            except:
-                return jsonify({'error': 'unable to send email'})
+            except Exception as e:
+                import traceback
+                print(traceback.print_exc())
+                return jsonify({'error': str(e)})
         except Exception as e:
             return jsonify({'error': str(e)})
 
@@ -156,6 +169,7 @@ class Delete_user(Resource):
             return jsonify({'error': 'user is not valid'})
 
 
+register_api.add_resource(Default, '/')
 register_api.add_resource(RegisterUser, '/v1/api/register')
 register_api.add_resource(Verify_user, '/v1/api/verify')
 register_api.add_resource(Login_user, '/v1/api/login')

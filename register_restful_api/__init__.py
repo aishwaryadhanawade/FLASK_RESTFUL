@@ -7,9 +7,9 @@ from flask_jwt_extended import JWTManager
 app = Flask(__name__)
 api = Api(app)
 
-mongo= MongoClient("mongodb://localhost:27017/")
+mongo= MongoClient("mongodb://mongodb:27017/")
 app.config["JWT_SECRET_KEY"] = "HS256"
 JWT_ACCESS_TOKEN_TIMEDELTA = datetime.timedelta(minutes=15)
 jwt = JWTManager(app)
-db=mongo['mdb']
+db=mongo['mdbb']
 user_collection=db['users']
