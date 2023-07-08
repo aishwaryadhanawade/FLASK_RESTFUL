@@ -1,0 +1,13 @@
+[unit]
+Description = uwsgi configuration
+After =network.target
+
+[service]
+User = aishwarya
+Group = www-data
+WorkingDirectory=/aishwarya/pycharmprojets/registerrest/register_api_rest
+Environment="PATH=/aishwarya/pycharmprojets/registerrest/venv/bin"
+ExecStart=/aishwarya/pycharmprojets/registerrest/register_api_rest/uwsgi --ini uwsgi.ini
+
+[Install]
+WantedBy=multi-user.target
