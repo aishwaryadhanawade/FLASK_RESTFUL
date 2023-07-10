@@ -15,13 +15,18 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
+from dotenv import load_dotenv
+
 register_user_api = Blueprint('register_user_api', __name__)
 register_api = Api(register_user_api)
+
+load_dotenv()
 
 
 class Default(Resource):
     def get(self):
-        return "Hello"
+        return "Hello world"
+
 
 class RegisterUser(Resource):
     def post(self):
@@ -29,7 +34,7 @@ class RegisterUser(Resource):
             # user_details = request.get_json()
             email = request.json.get('email')
             password = request.json.get('password')
-            print(email,password)
+            print(email, password)
             role = 'Admin'
             is_verified = False
             token_expiry_time = datetime.now() + timedelta(minutes=15)
@@ -53,12 +58,12 @@ class RegisterUser(Resource):
                 msg_token = f'''<html>
                                     <body>
                                         <p>To verify your email</p>
-                                        <b><a href="http://127.0.0.1:5000//v1/api/verify?token={user_auth_token}">Click Here</a></b>
+                                        <b><a href="http://localhost/v1/api/verify?token={user_auth_token}">Click Here</a></b>
                                     </body>
                                 </html>'''
 
-                sender_mail = os.environ.get('sender_gmail')
-                sender_password = os.environ.get('app_password')
+                sender_mail = os.environ['sender_gmail']
+                sender_password = os.environ['app_password']
                 # sender_mail = "aishwaryadhanawade612@gmail.com"
                 #
                 # sender_password = "igxnzbkbjtnctwio"
@@ -77,7 +82,7 @@ class RegisterUser(Resource):
                 smtpobj.sendmail(sender_mail, email, message.as_string())
 
                 register_user_data = {'email': email,
-                                      'password': password,
+                                      'password': encrypt_password,
                                       'role': role,
                                       'is_verified': is_verified}
                 insert_user_data(register_user_data)
@@ -110,13 +115,14 @@ class Verify_user(Resource):
 class Login_user(Resource):
     def post(self):
         try:
+
             user_login_email = request.json.get('email')
             user_login_password = request.json.get('password')
             user_data = find_user_data(user_login_email)
-            # print(user_data)
+            print(user_data)
 
             if user_data:
-                if sha256_crypt.verify(str(user_login_password), user_data['password']) and user_data['is_verified'] == True and user_data['is_deleted'] == False:
+                if sha256_crypt.verify(str(user_login_password),user_data['password']) and user_data['is_verified'] == True and user_data['is_deleted'] == False:
                     user_access_token = create_access_token(identity=user_login_email,
                                                             expires_delta=JWT_ACCESS_TOKEN_TIMEDELTA)
                     user_refresh_token = create_refresh_token(identity=user_login_email)
@@ -128,8 +134,10 @@ class Login_user(Resource):
                     return jsonify({'error': 'Data is not verified'})
             else:
                 return jsonify({'error': 'user data is invalid'})
-        except:
-            return jsonify({'error': 'user not found'})
+        except Exception as e:
+            import traceback
+            print(traceback.print_exc())
+            return jsonify({'error':'not found'})
 
 
 class Update_user(Resource):
