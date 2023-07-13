@@ -1,20 +1,13 @@
-from register_restful_api import api, app
 from flask_restful import Resource, Api
 from flask import request, jsonify, Blueprint
 from register_restful_api.API.controller import *
-import os
-import smtplib
 from datetime import datetime, timedelta
 import jwt
 from register_restful_api.API.user_jwt_token import authentication_token
 from flask_jwt_extended import create_access_token, jwt_required, create_refresh_token, get_jwt_identity
 from register_restful_api import JWT_ACCESS_TOKEN_TIMEDELTA
 from passlib.hash import sha256_crypt
-# import the necessary components first
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-
+from register_restful_api.celery_file.celery_task import send_mail
 from dotenv import load_dotenv
 
 register_user_api = Blueprint('register_user_api', __name__)
@@ -62,31 +55,18 @@ class RegisterUser(Resource):
                                     </body>
                                 </html>'''
 
-                sender_mail = os.environ['sender_gmail']
-                sender_password = os.environ['app_password']
-                # sender_mail = "aishwaryadhanawade612@gmail.com"
-                #
-                # sender_password = "igxnzbkbjtnctwio"
+                verification_mail = send_mail(email, msg_token)
+                print(verification_mail)
+                if verification_mail:
 
-                message = MIMEMultipart("alternative")
-                message['Subject'] = "Verification Email"
-                message['From'] = sender_mail
-                message['To'] = email
-
-                message_link = MIMEText(msg_token, 'html')
-                message.attach(message_link)
-
-                smtpobj = smtplib.SMTP("smtp.gmail.com", 587)
-                smtpobj.starttls()
-                smtpobj.login(sender_mail, sender_password)
-                smtpobj.sendmail(sender_mail, email, message.as_string())
-
-                register_user_data = {'email': email,
-                                      'password': encrypt_password,
-                                      'role': role,
-                                      'is_verified': is_verified}
-                insert_user_data(register_user_data)
-                return jsonify({'response': 'mail send'})
+                    register_user_data = {'email': email,
+                                          'password': encrypt_password,
+                                          'role': role,
+                                          'is_verified': is_verified}
+                    insert_user_data(register_user_data)
+                    return jsonify({'response': 'mail send'})
+                else:
+                    return jsonify({'response': 'mail not send'})
 
             except Exception as e:
                 import traceback
@@ -122,7 +102,8 @@ class Login_user(Resource):
             print(user_data)
 
             if user_data:
-                if sha256_crypt.verify(str(user_login_password),user_data['password']) and user_data['is_verified'] == True and user_data['is_deleted'] == False:
+                if sha256_crypt.verify(str(user_login_password), user_data['password']) and user_data[
+                    'is_verified'] == True and user_data['is_deleted'] == False:
                     user_access_token = create_access_token(identity=user_login_email,
                                                             expires_delta=JWT_ACCESS_TOKEN_TIMEDELTA)
                     user_refresh_token = create_refresh_token(identity=user_login_email)
@@ -137,7 +118,7 @@ class Login_user(Resource):
         except Exception as e:
             import traceback
             print(traceback.print_exc())
-            return jsonify({'error':'not found'})
+            return jsonify({'error': 'not found'})
 
 
 class Update_user(Resource):

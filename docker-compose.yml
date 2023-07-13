@@ -16,7 +16,6 @@ services:
   #    command: python3 view.py --host=0.0.0.0
 
 
-
   mongodb:
      image: mongo
      ports:
@@ -29,9 +28,33 @@ services:
     container_name: nginx
     ports:
       - "80:80"
-networks:
-  default:
-    driver: custom-driver-1
+
+  redis:
+    image: redis
+    container_name: redis-image
+    hostname: redis
+    ports:
+      - "6379:6379"
+
+  rabbitmq:
+    image: rabbitmq
+    hostname: amqp
+    container_name: rabbitmq-image
+    ports:
+      - "5673:5672"
+
+  celery:
+    build:
+      context: .
+      dockerfile: Dockerfile.celery
+    container_name: celery-container
+    depends_on:
+      - rabbitmq
+      - flask
+      - redis
+
+
+
 
 
 
