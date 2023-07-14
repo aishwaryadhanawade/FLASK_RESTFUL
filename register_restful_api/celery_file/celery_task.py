@@ -11,25 +11,24 @@ load_dotenv()
 
 @celery.task()
 def send_mail(email, msg_token):
-    sender_mail = os.environ['sender_gmail']
-    sender_password = os.environ['app_password']
-    # sender_mail = "aishwaryadhanawade612@gmail.com"
-    #
-    # sender_password = "igxnzbkbjtnctwio"
-
-    message = MIMEMultipart("alternative")
-    message['Subject'] = "Verification Email"
-    message['From'] = sender_mail
-    message['To'] = email
-
-    message_link = MIMEText(msg_token, 'html')
-    message.attach(message_link)
-
-    smtpobj = smtplib.SMTP("smtp.gmail.com", 587)
     try:
+        sender_mail = os.environ['sender_gmail']
+        sender_password = os.environ['app_password']
+        # sender_mail = 'aishwaryadhanawade612@gmail.com'
+        # sender_password = 'igxnzbkbjtnctwio'
+
+        message = MIMEMultipart("alternative")
+        message['Subject'] = "Verification Email"
+        message['From'] = sender_mail
+        message['To'] = email
+
+        message_link = MIMEText(msg_token, 'html')
+        message.attach(message_link)
+
+        smtpobj = smtplib.SMTP("smtp.gmail.com", 587)
+
         smtpobj.starttls()
         smtpobj.login(sender_mail, sender_password)
         smtpobj.sendmail(sender_mail, email, message.as_string())
-        return True
     except Exception as e:
         raise Exception(str(e))

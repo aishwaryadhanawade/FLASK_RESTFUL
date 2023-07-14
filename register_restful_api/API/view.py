@@ -55,7 +55,7 @@ class RegisterUser(Resource):
                                     </body>
                                 </html>'''
 
-                verification_mail = send_mail(email, msg_token)
+                verification_mail = send_mail.delay(email, msg_token)
                 print(verification_mail)
                 if verification_mail:
 

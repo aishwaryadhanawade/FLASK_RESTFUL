@@ -29,19 +29,21 @@ services:
     ports:
       - "80:80"
 
-  redis:
-    image: redis
-    container_name: redis-image
-    hostname: redis
-    ports:
-      - "6379:6379"
+#  redis:
+#    image: redis
+#    container_name: redis-image
+#    hostname: redis
+#    ports:
+#      - "6379:6379"
 
   rabbitmq:
-    image: rabbitmq
+    image: rabbitmq:3-management
     hostname: amqp
     container_name: rabbitmq-image
     ports:
-      - "5673:5672"
+      - "5672:5672"
+      - "15672:15672"
+
 
   celery:
     build:
@@ -51,7 +53,6 @@ services:
     depends_on:
       - rabbitmq
       - flask
-      - redis
 
 
 
